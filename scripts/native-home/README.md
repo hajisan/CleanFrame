@@ -29,3 +29,7 @@ The implementation was reviewed against the [published S90D native Home work](ht
 On that firmware all four typed keys named `com.samsung.tv.csfs`, and setting the Home operation plus `db/appfw/home_appid` made the TV derive `startup_appid` and `booting_appid_backup` itself, while `db/first_screen/type` stayed on Samsung Home. Write nothing before capturing the AUL operation and every typed key, and read each write back; a refused or unreadable value means restore immediately.
 
 These are undocumented tools and key names on one model. Having `aul_test` does not make every firmware's keys equivalent, and the guards in `Control.cs` are there for that reason.
+
+## Before a firmware upgrade
+
+A Tizen upgrade can remove a sideloaded app. Because Home and startup are assigned to that app here, an upgrade that removes it leaves both assignments pointing at nothing. Run `restore` before accepting a major OS upgrade, and confirm the app is still installed afterwards before assuming Home works. See [Samsung TV notes](../../docs/samsung-tv-notes.md).

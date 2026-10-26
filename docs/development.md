@@ -60,6 +60,8 @@ For developer access, connect the TV and Mac to the same network, enable Develop
 
 `npm run tv:launch` opens the installed test. It does not change startup defaults. All device scripts use the app identity in `app/config.xml`; changing that identity would create a different application.
 
+`python3 scripts/tv-remote.py key HOME` sends remote input over the TV's local WebSocket API on port 8002, which lets a key press be checked without watching the screen. The first run shows an Allow prompt on the TV and keeps the returned token in ignored `.local/tv-remote-token`. It sends input only; it never writes settings. Behaviour of Samsung's own software that limits what keys and apps can do is recorded in [Samsung TV notes](samsung-tv-notes.md).
+
 ## Sources
 
 - [Samsung developer connection steps](https://developer.samsung.com/smarttv/develop/getting-started/using-sdk/tv-device.html)

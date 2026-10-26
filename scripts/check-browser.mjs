@@ -5,7 +5,7 @@ import { openPreview, root } from './browser.mjs';
 
 const KEY = 'cleanframe.home.v1';
 const PRIMARY = ['stremio', 'tv2play', 'drtv', 'youtube', 'netflix', 'nba', 'source'];
-const IDS = ['IkWsFHtOY9.Stremio', 'FHMMapSZwd.dktv2play', 'y6N4hjtxfc.DRTV', '9Ur5IzDKqV.TizenYouTube', 'org.tizen.netflix-app', 'lVYJ9MhFJc.NextGenSamsungTizen', 'org.tizen.SMSourceAPP'];
+const IDS = ['IkWsFHtOY9.Stremio', 'FHMMapSZwd.dktv2play', 'y6N4hjtxfc.DRTV', '9Ur5IzDKqV.TizenYouTube', 'org.tizen.netflix-app', 'lVYJ9MhFJc.NextGenSamsungTizen', 'org.tizen.tv-viewer'];
 const NAMES = ['Stremio', 'TV 2 Play', 'DR TV', 'YouTube', 'Netflix', 'NBA', 'PlayStation 5'];
 const EXTRA = 'AbCdEf1234.FamilyApp', SPOTIFY = 'rJeHak5zRg.Spotify';
 const UNSAFE_NAME = 'Family <img src=x onerror="window.__catalogXss=1"> & TV';

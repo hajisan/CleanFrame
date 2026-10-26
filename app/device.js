@@ -4,7 +4,7 @@
   var IDS = {
     stremio: 'IkWsFHtOY9.Stremio', tv2play: 'FHMMapSZwd.dktv2play', drtv: 'y6N4hjtxfc.DRTV',
     youtube: '9Ur5IzDKqV.TizenYouTube', netflix: 'org.tizen.netflix-app',
-    nba: 'lVYJ9MhFJc.NextGenSamsungTizen', source: 'org.tizen.SMSourceAPP'
+    nba: 'lVYJ9MhFJc.NextGenSamsungTizen', source: 'org.tizen.tv-viewer'
   };
   var STREAMING = ['as6cYRgkPy.Binge', '73iTZRTc34.Stan', '5b8c3eb16b.BeamCTVDev',
     'KaLitts8bq.tenplaySamsungTizen', 'eYuOiOLYQX.KayoSports', 'Ne2ZsPWdKl.9NOW',
@@ -26,8 +26,10 @@
     function finish(err, value) { if (finished) return; finished = true; clearTimeout(timer); done(err, value); }
     return finish;
   }
+  var HDMI_PS5 = '1';
   function launchApp(id, done) {
     if (!api()) { unavailable(done); return; }
+    if (id === IDS.source) { hdmi(HDMI_PS5, done); return; }
     var finish = bounded(done);
     try { api().launch(id, function () { finish(null); }, function (err) { finish(failure(err)); }); }
     catch (err) { finish(failure(err)); }
@@ -43,6 +45,15 @@
       var data = [new tizen.ApplicationControlData('mode', ['fullscreen']), new tizen.ApplicationControlData('requester', ['mobile'])];
       var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/default', null, null, null, data);
       api().launchAppControl(control, 'org.tizen.art-app', function () { finish(null); }, function (err) { finish(failure(err)); });
+    } catch (err) { finish(failure(err)); }
+  }
+  /* tv-viewer accepts an input choice through app-control data; confirmed on the TQ43LS03BGU. */
+  function hdmi(number, done) {
+    var finish = bounded(done);
+    try {
+      var data = [new tizen.ApplicationControlData('SOURCE', ['HDMI' + number]), new tizen.ApplicationControlData('type', ['HDMI']), new tizen.ApplicationControlData('number', [number])];
+      var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/default', null, null, null, data);
+      api().launchAppControl(control, IDS.source, function () { finish(null); }, function (err) { finish(failure(err)); });
     } catch (err) { finish(failure(err)); }
   }
   function home(done) { launchApp('com.samsung.tv.csfs', done); }

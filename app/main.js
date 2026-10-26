@@ -3,7 +3,7 @@
   'use strict';
 
   /* ---------- Bundled data ---------- */
-  var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', WP = ASSETS + 'wallpapers/';
+  var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', LOGOS = ASSETS + 'logos/', WP = ASSETS + 'wallpapers/';
   var CAP = 9, SCRIM_Y = 560;
   var DOCK_MODES = { both: { tw: 288, th: 200, pitch: 296 }, text: { tw: 288, th: 104, pitch: 296 }, icons: { tw: 176, th: 144, pitch: 184 } };
   var GRID_ROW = 240, GRID_COL = 344, COLS = 5;
@@ -13,15 +13,15 @@
   var KEYS = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 27: 'back', 8: 'back', 10009: 'back', 461: 'back' };
   var FULL = 'Home holds nine apps. Remove one first.', LAST = 'Home needs one app';
 
-  /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source opens Samsung's input picker; direct HDMI is unverified. */
+  /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source switches tv-viewer to HDMI 1 (the PS5). */
   var PRIMARY_APPS = [
     { id: 'stremio', name: 'Stremio', mark: true, appId: 'IkWsFHtOY9.Stremio' },
-    { id: 'tv2play', name: 'TV 2 Play', mark: true, appId: 'FHMMapSZwd.dktv2play' },
+    { id: 'tv2play', name: 'TV 2 Play', mark: true, logo: 'tv2play.svg', appId: 'FHMMapSZwd.dktv2play' },
     { id: 'drtv', name: 'DR TV', mark: true, appId: 'y6N4hjtxfc.DRTV' },
     { id: 'youtube', name: 'YouTube', mark: true, appId: '9Ur5IzDKqV.TizenYouTube' },
     { id: 'netflix', name: 'Netflix', mark: true, appId: 'org.tizen.netflix-app' },
-    { id: 'nba', name: 'NBA', mark: true, appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
-    { id: 'source', name: 'PlayStation 5', mark: true, appId: 'org.tizen.SMSourceAPP' }
+    { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
+    { id: 'source', name: 'PlayStation 5', mark: true, logo: 'source.svg', appId: 'org.tizen.tv-viewer' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
@@ -140,6 +140,9 @@
       + (maskSupport ? '<span class="mk" style="' + st + ';-webkit-mask-image:url(' + ICONS + id + '.svg);mask-image:url(' + ICONS + id + '.svg)"></span>' : '<img alt="" src="' + ICONS + id + '.svg" style="' + st + '">') + '</span>';
   }
   function appMark(a, w, h, size) {
+    /* Full-colour logos from assets/logos/ replace the monochrome mask. */
+    var p = a.logo || (PRIMARY.indexOf(a.id) >= 0 && PRIMARY_APPS[PRIMARY.indexOf(a.id)].logo);
+    if (p) return '<span class="mark logo" style="width:' + w + 'px;height:' + h + 'px"><img alt="" src="' + LOGOS + p + '"></span>';
     if (a.mark && (maskSupport || S.c.bg !== 'light')) return markHtml(a.brand || a.id, w, h, size);
     var words = a.name.split(/\s+/), letters = words[0].charAt(0) + (words.length > 1 ? words[1].charAt(0) : '');
     return '<span class="mark monogram' + (a.icon ? ' native-icon' : '') + '" style="width:' + w + 'px;height:' + h + 'px;font-size:' + Math.round(size * .65) + 'px"><span>' + esc(letters.toUpperCase()) + '</span>'

@@ -15,13 +15,13 @@
 
   /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source switches tv-viewer to HDMI 1 (the PS5). */
   var PRIMARY_APPS = [
-    { id: 'stremio', name: 'Stremio', mark: true, appId: 'IkWsFHtOY9.Stremio' },
+    { id: 'stremio', name: 'Stremio', mark: true, logo: 'stremio.png', appId: 'IkWsFHtOY9.Stremio' },
     { id: 'tv2play', name: 'TV 2 Play', mark: true, logo: 'tv2play.svg', appId: 'FHMMapSZwd.dktv2play' },
-    { id: 'drtv', name: 'DR TV', mark: true, appId: 'y6N4hjtxfc.DRTV' },
-    { id: 'youtube', name: 'YouTube', mark: true, appId: '9Ur5IzDKqV.TizenYouTube' },
-    { id: 'netflix', name: 'Netflix', mark: true, appId: 'org.tizen.netflix-app' },
+    { id: 'drtv', name: 'DR TV', mark: true, logo: 'drtv.svg', appId: 'y6N4hjtxfc.DRTV' },
+    { id: 'youtube', name: 'YouTube', mark: true, logo: 'youtube.svg', appId: '9Ur5IzDKqV.TizenYouTube' },
+    { id: 'netflix', name: 'Netflix', mark: true, logo: 'netflix.png', appId: 'org.tizen.netflix-app' },
     { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
-    { id: 'source', name: 'PlayStation 5', mark: true, logo: 'source.svg', appId: 'org.tizen.tv-viewer' }
+    { id: 'source', name: 'PlayStation 5', mark: true, logo: 'source.png', appId: 'org.tizen.tv-viewer' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];

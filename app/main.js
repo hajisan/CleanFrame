@@ -13,15 +13,15 @@
   var KEYS = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 27: 'back', 8: 'back', 10009: 'back', 461: 'back' };
   var FULL = 'Home holds nine apps. Remove one first.', LAST = 'Home needs one app';
 
-  /* TV2 Play, DR TV, NBA and Source IDs are placeholders until read from the TV's installed-app list. */
+  /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source opens Samsung's input picker; direct HDMI is unverified. */
   var PRIMARY_APPS = [
     { id: 'stremio', name: 'Stremio', mark: true, appId: 'IkWsFHtOY9.Stremio' },
-    { id: 'tv2play', name: 'TV 2 Play', mark: false, appId: 'TODO.TV2Play' },
-    { id: 'drtv', name: 'DR TV', mark: false, appId: 'TODO.DRTV' },
+    { id: 'tv2play', name: 'TV 2 Play', mark: false, appId: 'FHMMapSZwd.dktv2play' },
+    { id: 'drtv', name: 'DR TV', mark: false, appId: 'y6N4hjtxfc.DRTV' },
     { id: 'youtube', name: 'YouTube', mark: true, appId: '9Ur5IzDKqV.TizenYouTube' },
     { id: 'netflix', name: 'Netflix', mark: true, appId: 'org.tizen.netflix-app' },
-    { id: 'nba', name: 'NBA', mark: false, appId: 'TODO.NBA' },
-    { id: 'source', name: 'PlayStation 5', mark: false, appId: 'TODO.Source' }
+    { id: 'nba', name: 'NBA', mark: false, appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
+    { id: 'source', name: 'PlayStation 5', mark: false, appId: 'org.tizen.SMSourceAPP' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];

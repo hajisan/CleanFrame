@@ -2,9 +2,9 @@
 (function () {
   'use strict';
   var IDS = {
-    stremio: 'IkWsFHtOY9.Stremio', tv2play: 'TODO.TV2Play', drtv: 'TODO.DRTV',
+    stremio: 'IkWsFHtOY9.Stremio', tv2play: 'FHMMapSZwd.dktv2play', drtv: 'y6N4hjtxfc.DRTV',
     youtube: '9Ur5IzDKqV.TizenYouTube', netflix: 'org.tizen.netflix-app',
-    nba: 'TODO.NBA', source: 'TODO.Source'
+    nba: 'lVYJ9MhFJc.NextGenSamsungTizen', source: 'org.tizen.SMSourceAPP'
   };
   var UNMARKED = ['tv2play', 'drtv', 'nba', 'source'];
   var STREAMING = ['as6cYRgkPy.Binge', '73iTZRTc34.Stan', '5b8c3eb16b.BeamCTVDev',

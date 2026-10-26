@@ -33,7 +33,7 @@ The selected font applies to Home app names, the clock and Home controls, includ
 
 ## Streaming apps
 
-The nine default apps keep their known native IDs. Other installed consumer apps can also be added to Home. Launching uses the public `tizen.application.launch` API with the app's native ID. Missing apps and denied launches produce a real error. No web player, placeholder success page or account credential is embedded.
+The nine default apps keep their known native IDs. Other installed consumer apps can also be added to Home. Launching normally uses the public `tizen.application.launch` API with the app's native ID. Some store apps, such as DR TV, are HbbTV apps: the TV accepts that call but never starts them. For those, CleanFrame reads the app's `hbbtv.link` metadata and starts the shared `org.tizen.hbbtv` host with that link, which is the same route Samsung Home uses. Missing apps and denied launches produce a real error. No web player, placeholder success page or account credential is embedded.
 
 ## All apps
 

@@ -27,9 +27,37 @@
     return finish;
   }
   var HDMI_PS5 = '1';
+  /* HbbTV apps such as DR TV are not startable by their own ID. Samsung publishes
+     their entry page as app metadata and starts the shared HbbTV host instead. */
+  var HBBTV_HOST = 'org.tizen.hbbtv';
+  var HBBTV_LINK = 'http://samsung.com/tv/metadata/hbbtv.link';
+  function hbbtvLink(id) {
+    try {
+      if (!api().getAppMetaData) return '';
+      var metadata = api().getAppMetaData(id), i;
+      for (i = 0; metadata && i < metadata.length; i++) {
+        if (metadata[i] && metadata[i].key === HBBTV_LINK && typeof metadata[i].value === 'string' && metadata[i].value.trim()) return metadata[i].value.trim();
+      }
+    } catch (err) {}
+    return '';
+  }
+  function launchHbbtv(id, link, done) {
+    var finish = bounded(done);
+    try {
+      var data = [
+        new tizen.ApplicationControlData('tizenid', [id]),
+        new tizen.ApplicationControlData('hbbtv', [link]),
+        new tizen.ApplicationControlData('deeplink', ['true'])
+      ];
+      var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/default', null, null, null, data);
+      api().launchAppControl(control, HBBTV_HOST, function () { finish(null); }, function (err) { finish(failure(err)); });
+    } catch (err) { finish(failure(err)); }
+  }
   function launchApp(id, done) {
     if (!api()) { unavailable(done); return; }
     if (id === IDS.source) { hdmi(HDMI_PS5, done); return; }
+    var link = hbbtvLink(id);
+    if (link) { launchHbbtv(id, link, done); return; }
     var finish = bounded(done);
     try { api().launch(id, function () { finish(null); }, function (err) { finish(failure(err)); }); }
     catch (err) { finish(failure(err)); }
@@ -68,7 +96,7 @@
         list.forEach(function (a) {
           var primary = !!known[a.id], stream = STREAMING.indexOf(a.id) >= 0;
           var consumer = /^[A-Za-z0-9]{10}\.[A-Za-z0-9_-]+$/.test(a.id) || CONSUMER_SYSTEM.indexOf(a.id) >= 0;
-          if (a.id === SELF || INTERNAL.indexOf(a.id) >= 0 || seen[a.id] || !a.name || (!primary && !stream && (!a.show || !consumer))) return;
+          if (a.id === SELF || a.id === HBBTV_HOST || a.id === HBBTV_HOST + '-service' || INTERNAL.indexOf(a.id) >= 0 || seen[a.id] || !a.name || (!primary && !stream && (!a.show || !consumer))) return;
           if (!primary && /(?:service|worker|preview|promotion|plugin|launcher|test|sdk|^ep[ -]|factory|daemon)/i.test(a.name + ' ' + a.id)) return;
           if (/-dummy$/.test(a.id) || a.id === 'com.samsung.tv.cobalt-yt') return;
           seen[a.id] = true;

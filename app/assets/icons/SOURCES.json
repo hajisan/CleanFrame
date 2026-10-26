@@ -11,5 +11,9 @@
   "art": "CleanFrame original utility outline, 24px grid / 1.6px stroke",
   "apps": "CleanFrame original utility outline, 24px grid / 1.6px stroke",
   "settings": "CleanFrame original utility outline, 24px grid / 1.6px stroke",
-  "home": "CleanFrame original utility outline, 24px grid / 1.6px stroke"
+  "home": "CleanFrame original utility outline, 24px grid / 1.6px stroke",
+  "tv2play": "CleanFrame wordmark \"TV 2\" set in Geist 800 (OFL), not the official TV 2 logo",
+  "drtv": "CleanFrame wordmark \"DR\" set in Geist 800 (OFL), not the official DR logo",
+  "nba": "https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/nba.svg (recoloured white)",
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/playstation.svg (recoloured white)"
 }

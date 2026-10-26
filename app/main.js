@@ -16,12 +16,12 @@
   /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source opens Samsung's input picker; direct HDMI is unverified. */
   var PRIMARY_APPS = [
     { id: 'stremio', name: 'Stremio', mark: true, appId: 'IkWsFHtOY9.Stremio' },
-    { id: 'tv2play', name: 'TV 2 Play', mark: false, appId: 'FHMMapSZwd.dktv2play' },
-    { id: 'drtv', name: 'DR TV', mark: false, appId: 'y6N4hjtxfc.DRTV' },
+    { id: 'tv2play', name: 'TV 2 Play', mark: true, appId: 'FHMMapSZwd.dktv2play' },
+    { id: 'drtv', name: 'DR TV', mark: true, appId: 'y6N4hjtxfc.DRTV' },
     { id: 'youtube', name: 'YouTube', mark: true, appId: '9Ur5IzDKqV.TizenYouTube' },
     { id: 'netflix', name: 'Netflix', mark: true, appId: 'org.tizen.netflix-app' },
-    { id: 'nba', name: 'NBA', mark: false, appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
-    { id: 'source', name: 'PlayStation 5', mark: false, appId: 'org.tizen.SMSourceAPP' }
+    { id: 'nba', name: 'NBA', mark: true, appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
+    { id: 'source', name: 'PlayStation 5', mark: true, appId: 'org.tizen.SMSourceAPP' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];

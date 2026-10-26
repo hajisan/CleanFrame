@@ -27,6 +27,14 @@ Two candidate settings were tried and reverted:
 
 Do not alias `com.samsung.tv.csfs` to another app. That redirect would also take away CleanFrame's own route to Samsung Home, which is where picture, input and network settings live. Two Home presses is the honest workaround.
 
+## Opening Samsung settings from an app
+
+**Verified.** A launcher cannot start `com.samsung.tv.coba.setting` directly. Its manifest declares no app-control operation and marks it `support-fs-external-component` with `support-multiprocess-home`, so it is a settings *component* hosted by Smart Hub rather than a standalone app: `tizen.application.launch` reports a successful launch and nothing appears on screen. The same call from `sdb` returns a pid and still shows nothing.
+
+`org.tizen.menu` is the host that opens the settings screen, and launching it works. Point TV settings there and verify visually; a launch callback is not proof.
+
+Smart Hub itself takes `entry_point:` arguments for its keys (`source_key`, `multiview_key`, `androidmenu_key`), which is how the remote's Menu key reaches All Settings. Those arguments are not reachable through `tizen.application.launch`, so going straight to one settings page is not currently possible from an app.
+
 ## Firmware upgrades can remove a sideloaded app
 
 **Reported.** Tizen upgrades, including moves to One UI Tizen, have removed sideloaded apps on other TVs.

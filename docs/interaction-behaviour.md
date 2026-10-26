@@ -54,7 +54,9 @@ Removing the last Home app or adding a tenth app is prevented. A failed storage 
 
 ## Samsung screens
 
-Samsung Home explicitly launches the original `com.samsung.tv.csfs` app, independently of the new Home assignment. The earlier `com.samsung.tv.coba.newhome` component did not open Smart Hub visibly and is no longer the escape target. TV settings still uses `com.samsung.tv.coba.setting`. Exact on-device destinations are recorded in docs/tv-status.md; launch callbacks alone are not visual proof. There is no blind power-key fallback.
+Samsung Home explicitly launches the original `com.samsung.tv.csfs` app, independently of the new Home assignment. The earlier `com.samsung.tv.coba.newhome` component did not open Smart Hub visibly and is no longer the escape target. Exact on-device destinations are recorded in docs/tv-status.md; launch callbacks alone are not visual proof. There is no blind power-key fallback.
+
+TV settings launches the settings host `org.tizen.menu`. The installed `com.samsung.tv.coba.setting` is not an app in the launchable sense: its manifest declares no app-control operation and marks it `support-fs-external-component` with `support-multiprocess-home`, so it is a settings component hosted by Smart Hub. Launching it directly reports success and shows nothing, which is what the previous target did.
 
 All calls have bounded response handling. A failure leaves CleanFrame usable. No simulated device success views remain. Browser validation cannot confirm the visible Samsung destination.
 

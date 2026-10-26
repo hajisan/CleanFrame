@@ -76,7 +76,7 @@
     } catch (err) { finish(failure(err)); }
   }
   function home(done) { launchApp('com.samsung.tv.csfs', done); }
-  function settings(done) { launchApp('com.samsung.tv.coba.setting', done); }
+  function settings(done) { launchApp('org.tizen.menu', done); }
   function apps(done) {
     if (!api()) { unavailable(done); return; }
     var finish = bounded(done);

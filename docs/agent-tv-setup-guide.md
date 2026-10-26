@@ -18,7 +18,7 @@ Installing an app and assigning the system Home launcher are separate jobs. You 
 | Signed launcher | Installed and opened; Netflix and YouTube launched with the normal remote |
 | Native Home routing | Pressing the physical Home button from Netflix returned to the custom launcher |
 | Startup | Native settings named the launcher. Normal power-on after Netflix was only tentatively reported and still needs a definite physical check |
-| Samsung Home escape and Art Mode | The corrected escape target and native Art Mode behaviour still need physical confirmation |
+| Samsung Home escape | The corrected escape target still needs physical confirmation |
 
 These are results on one TV. Matching the model alone does not establish compatibility. Your agent must check your firmware and capabilities before attempting native Home changes.
 

@@ -28,7 +28,7 @@ Run these only under a task that includes TV testing. Announce any installation 
 
 1. Move in both directions through each layout and Settings; check focus, response and readable labels from the sofa.
 2. Launch Netflix/YouTube, press Home to return, and check the selected app. Treat streaming apps' own Back handling separately.
-3. Check Art Mode, Other apps, TV settings and Settings → Samsung → Samsung Home; verify the actual visible destinations.
+3. Check Other apps, TV settings and Settings → Samsung → Samsung Home; verify the actual visible destinations.
 4. Check saved appearance/app order/wallpaper after relaunch. Check timed rotation pauses while a panel is open or the app is hidden.
 5. Test normal power-on after a streaming app and the usual Art Mode routine only when that work is included. Preserve the native Home recovery baseline and restore it before any uninstall/identity change.
 

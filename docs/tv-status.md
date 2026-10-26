@@ -32,7 +32,7 @@ Netflix uses `org.tizen.netflix-app`. YouTube uses `9Ur5IzDKqV.TizenYouTube`, wi
 
 ## Pending physical checks
 
-The 0.6.1 installation and launch responses are command evidence. Current rendering, fonts, expanded catalogue, Settings and remote feel still need physical observation. Also pending are native Art Mode's destination, TV settings, corrected Samsung Home escape through `com.samsung.tv.csfs`, and normal power-on after streaming or Art Mode. An earlier report of startup after Netflix was provisional.
+The 0.6.1 installation and launch responses are command evidence. Current rendering, fonts, expanded catalogue, Settings and remote feel still need physical observation. Also pending are TV settings, corrected Samsung Home escape through `com.samsung.tv.csfs`, and normal power-on after streaming or Art Mode. An earlier report of startup after Netflix was provisional.
 
 Browser and package checks establish source behaviour and archive contents. CPU-throttled Chromium timings are development comparisons; they are not TV benchmarks. Current browser checks are described in [testing](testing.md).
 

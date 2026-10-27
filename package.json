@@ -10,6 +10,7 @@
     "tv:info": "python3 scripts/tv.py info",
     "tv:install": "python3 scripts/tv.py install",
     "tv:launch": "python3 scripts/tv.py launch",
+    "tv": "python3 scripts/deploy.py",
     "check:browser": "node scripts/check-browser.mjs",
     "dev:public": "python3 scripts/preview.py --public-fonts",
     "export:public": "python3 scripts/export-public.py",

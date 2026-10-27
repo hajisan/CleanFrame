@@ -4,9 +4,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { openPreview, root } from './browser.mjs';
 
 const KEY = 'cleanframe.home.v1';
-const PRIMARY = ['stremio', 'tv2play', 'drtv', 'youtube', 'netflix', 'nba', 'source'];
-const IDS = ['IkWsFHtOY9.Stremio', 'FHMMapSZwd.dktv2play', 'y6N4hjtxfc.DRTV', '9Ur5IzDKqV.TizenYouTube', 'org.tizen.netflix-app', 'lVYJ9MhFJc.NextGenSamsungTizen', 'org.tizen.tv-viewer'];
-const NAMES = ['Stremio', 'TV 2 Play', 'DR TV', 'YouTube', 'Netflix', 'NBA', 'PlayStation 5'];
+const PRIMARY = ['stremio', 'tv2play', 'drtv', 'youtube', 'netflix', 'nba'];
+const IDS = ['IkWsFHtOY9.Stremio', 'FHMMapSZwd.dktv2play', 'y6N4hjtxfc.DRTV', '9Ur5IzDKqV.TizenYouTube', 'org.tizen.netflix-app', 'lVYJ9MhFJc.NextGenSamsungTizen'];
+const NAMES = ['Stremio', 'TV 2 Play', 'DR TV', 'YouTube', 'Netflix', 'NBA'];
 const EXTRA = 'AbCdEf1234.FamilyApp', SPOTIFY = 'rJeHak5zRg.Spotify';
 const UNSAFE_NAME = 'Family <img src=x onerror="window.__catalogXss=1"> & TV';
 const CATALOG = IDS.map((id, i) => ({ id, name: NAMES[i], show: true, iconPath: '' })).concat([
@@ -237,7 +237,7 @@ try {
   await run('Real catalogue and native launch boundary', async () => {
     await page(); await library();
     const names = await current.locator('[data-action^="apps.open."] .label').allTextContents();
-    check('Consumer catalogue excludes services, self and duplicate YouTube', names.length === 10 && names.filter(n => n === 'YouTube').length === 1 && !names.includes('CleanFrame') && !names.includes('Background worker'), names);
+    check('Consumer catalogue excludes services, self and duplicate YouTube', names.length === 9 && names.filter(n => n === 'YouTube').length === 1 && !names.includes('CleanFrame') && !names.includes('Background worker'), names);
     check('Installed names stay text, including HTML punctuation', names.includes(UNSAFE_NAME) && !(await current.evaluate(() => window.__catalogXss)));
     check('Exploration fixtures do not appear', !names.includes('Plex') && !names.includes('Jellyfin'));
     await act('apps.open.' + SPOTIFY); await current.waitForFunction(() => __tv.calls.length > 0);
@@ -262,7 +262,7 @@ try {
     check('Catalogue failure leaves Home intact', same((await state()).dock, PRIMARY));
     await current.evaluate(() => { __tv.catalogFailure = false; }); await act('apps.retry');
     await current.waitForSelector('[data-action="apps.open.' + EXTRA + '"]');
-    check('Retry displays real installed names', (await current.locator('[data-action^="apps.open."]').count()) === 10);
+    check('Retry displays real installed names', (await current.locator('[data-action^="apps.open."]').count()) === 9);
   });
   await run('Native icon and failed-image fallback', async () => {
     await page({ catalog: CATALOG.map(a => a.id === EXTRA ? { ...a, iconPath: '/home/assets/icons/netflix.svg' } : a) });

@@ -10,6 +10,7 @@ Læg PNG-filer her, navngivet efter app-id:
 | `youtube.png` | YouTube |
 | `netflix.png` | Netflix |
 | `nba.png` | NBA |
-| `source.png` | PlayStation 5 |
+| `source_ps5_color.png` | PlayStation 5 (konsol) |
+| `source_xbox.png` | Xbox Series S (konsol) |
 
-Gerne kvadratiske, mindst 256×256 px, med gennemsigtig baggrund.
+Gerne kvadratiske, mindst 256×256 px, med gennemsigtig baggrund. Konsollerne har deres egen sektion på Home og er ikke en del af app-listen.

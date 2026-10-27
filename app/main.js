@@ -6,6 +6,8 @@
   var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', LOGOS = ASSETS + 'logos/', WP = ASSETS + 'wallpapers/';
   var CAP = 9, SCRIM_Y = 560;
   var DOCK_MODES = { both: { tw: 288, th: 200, pitch: 296 }, text: { tw: 288, th: 104, pitch: 296 }, icons: { tw: 176, th: 144, pitch: 184 } };
+  var CONSOLE_W = 330, CONSOLE_H = 88, CONSOLE_GAP = 8, CONSOLE_PAD = 12, CONSOLE_DROP = 16, DOCK_BOTTOM = 908, DOCK_BOTTOM_CONSOLES = 872;
+  var CONSOLE_W_LIST = 520, CONSOLE_H_LIST = 104, CONSOLE_GAP_LIST = 12;
   var GRID_ROW = 240, GRID_COL = 344, COLS = 5;
   var ED_ROW = 80, ED_SEP = 56, ED_VIEW = 752, STRIP_PITCH = 188;
   var PH_TOP = 220, PH_PITCH = 128, PH_FULL = 5, PH_HEIGHT = 944, PH_COMPACT_TOP = 144, PH_COMPACT_PITCH = 88, PH_COMPACT_VISIBLE = 9;
@@ -13,15 +15,19 @@
   var KEYS = { 37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 27: 'back', 8: 'back', 10009: 'back', 461: 'back' };
   var FULL = 'Home holds nine apps. Remove one first.', LAST = 'Home needs one app';
 
-  /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Source switches tv-viewer to HDMI 1 (the PS5). */
+  /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Consoles have their own section. */
   var PRIMARY_APPS = [
     { id: 'stremio', name: 'Stremio', mark: true, logo: 'stremio.png', appId: 'IkWsFHtOY9.Stremio' },
     { id: 'tv2play', name: 'TV 2 Play', mark: true, logo: 'tv2play.svg', appId: 'FHMMapSZwd.dktv2play' },
     { id: 'drtv', name: 'DR TV', mark: true, logo: 'drtv.svg', appId: 'y6N4hjtxfc.DRTV' },
     { id: 'youtube', name: 'YouTube', mark: true, logo: 'youtube.svg', appId: '9Ur5IzDKqV.TizenYouTube' },
     { id: 'netflix', name: 'Netflix', mark: true, logo: 'netflix.png', appId: 'org.tizen.netflix-app' },
-    { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' },
-    { id: 'source', name: 'PlayStation 5', mark: true, logo: 'source.png', appId: 'org.tizen.tv-viewer' }
+    { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' }
+  ];
+  /* Fixed inputs, not part of the editable Home list. Each tile switches tv-viewer to its HDMI port. */
+  var CONSOLES = [
+    { key: 'ps5', name: 'PlayStation 5', logo: 'source_ps5_color.png', hdmi: '1' },
+    { key: 'xbox', name: 'Xbox Series S', logo: 'source_xbox.png', hdmi: '2' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
@@ -72,7 +78,7 @@
   var REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var S = {
     variant: 'B', geom: 'broad', c: null, stack: null,
-    sel: null, selIdx: 0, lastUtil: 0, appsFocus: null, settingsFocus: 'background', appearanceFocus: 'bg', detailFocus: {},
+    sel: null, selIdx: 0, lastUtil: 0, lastConsole: 0, appsFocus: null, settingsFocus: 'background', appearanceFocus: 'bg', detailFocus: {},
     undo: [], removedAt: {}, note: null, err: null,
     writes: 0, failed: 0, log: [], logN: 0, lastLaunch: null, press: null,
     wallShown: null, wallPending: null, wallError: null,
@@ -464,6 +470,11 @@
     S.press = id; S.lastLaunch = a.name;
     perform(a.name, function (done) { FrameDevice.launchApp(a.appId, done); });
   }
+  function launchConsole(c) {
+    if (!c || busy) return;
+    S.press = 'console:' + c.key; S.lastLaunch = c.name;
+    perform(c.name, function (done) { FrameDevice.consoleInput(c.key, done); });
+  }
   function refreshCatalog() {
     var request, oldFocus;
     if (catalog.loading) return;
@@ -535,6 +546,7 @@
     key: function (t, k) {
       var f = t.f, h = S.c.home, U = utils(), x = axes(), i = ensureSel();
       if (S.c.layout === 'list') { listHomeKey(t, k, i, U); return; }
+      if (f.zone === 'consoles') { consoleKey(t, k, x, false); return; }
       if (f.zone === 'util') {
         f.u = clamp(f.u, 0, U.length - 1);
         if (k === x.prev && f.u > 0) f.u--;
@@ -546,6 +558,7 @@
       }
       f.zone = 'apps';
       if (k === x.out) { f.zone = 'util'; f.u = clamp(S.lastUtil, 0, U.length - 1); }
+      else if (k === x.inn && CONSOLES.length) { f.zone = 'consoles'; f.c = clamp(S.lastConsole, 0, CONSOLES.length - 1); }
       else if (k === 'back') openMessage('leave');
       else if (!h.length) { if (k === 'ok') addAppsRoute(); }
       else if (k === x.prev && i > 0) setSel(h[i - 1]);
@@ -555,13 +568,27 @@
     point: function (t, z, i) {
       if (z === 'util') { t.f.zone = 'util'; t.f.u = i; S.lastUtil = i; }
       else if (z === 'app') { t.f.zone = 'apps'; setSel(S.c.home[i]); }
+      else if (z === 'consoles') { t.f.zone = 'consoles'; t.f.c = i; S.lastConsole = i; }
       else if (z === 'empty') t.f.zone = 'apps';
       else return;
       this.key(t, 'ok');
     }
   };
+  /* Dock consoles sit below the app row, so up or Back returns to the apps. List
+     consoles share the right column, where right leaves for the controls. */
+  function consoleKey(t, k, x, list) {
+    var f = t.f, U = utils(), prev = list ? 'left' : x.prev, next = list ? 'right' : x.next;
+    f.c = clamp(f.c || 0, 0, CONSOLES.length - 1);
+    if (k === prev && f.c > 0) f.c--;
+    else if (k === next && f.c < CONSOLES.length - 1) f.c++;
+    else if (list ? (k === 'up' || k === 'back') : (k === x.out || k === 'back')) f.zone = 'apps';
+    else if (list && k === 'right') { f.zone = 'util'; f.u = clamp(S.lastUtil, 0, U.length - 1); }
+    else if (k === 'ok') { S.lastConsole = f.c; launchConsole(CONSOLES[f.c]); return; }
+    S.lastConsole = f.c;
+  }
   function listHomeKey(t, k, i, U) {
     var f = t.f, h = S.c.home;
+    if (f.zone === 'consoles') { consoleKey(t, k, null, true); return; }
     if (f.zone === 'util') {
       f.u = clamp(f.u, 0, U.length - 1);
       if (k === 'up' && f.u > 0) f.u--;
@@ -575,6 +602,7 @@
     if (k === 'up' && i > 0) setSel(h[i - 1]);
     else if (k === 'right') { f.zone = 'util'; f.u = clamp(S.lastUtil, 0, U.length - 1); }
     else if (k === 'down' && i < h.length - 1) setSel(h[i + 1]);
+    else if (k === 'down' && CONSOLES.length) { f.zone = 'consoles'; f.c = clamp(S.lastConsole, 0, CONSOLES.length - 1); }
     else if (k === 'back') openMessage('leave');
     else if (k === 'ok') { if (h.length) launch(S.sel); else addAppsRoute(); }
   }
@@ -985,6 +1013,8 @@
   var phPlates = [phPlate, $('phPlateAlt')], phFields = [phField, $('phFieldAlt')], photoPlateIndex = 0, photoPlateKey = null;
   var utPlates = [$('utLens'), $('utLensAlt')], utFields = [$('utField'), $('utFieldAlt')], utPlateIndex = 0, utPlateKey = null;
   var photoMode = null, photoTransitionToken = 0;
+  var consolesEl = $('consoles'), consolesMat = $('consolesMat'), consolesScrim = $('consolesScrim'), consoleCards = $('consoleCards');
+  var consoleFocus = $('consoleFocus'), consolesLabel = $('consolesLabel'), lastDockGeom = null;
   var sheetEl = $('sheet'), sheetView = $('sheetView');
   var IMG = { photo: $('photo'), mat: $('matImg'), bg: $('sheetBg'), field: $('phFieldImg'), fieldAlt: $('phFieldImgAlt'), utility: $('utFieldImg'), utilityAlt: $('utFieldImgAlt') };
   var sheetKey = '', slotEls = {}, dockEdgeFrame = 0, dockEdgeUntil = 0, dockAnchorCenter = 960;
@@ -1040,9 +1070,10 @@
   }
 
   function homeState(t) {
-    var h = S.c.home, hs = { mode: 'browse', zone: null, i: Math.max(0, ensureSel()), u: -1, lifted: false, from: -1, arr: null, items: h.map(function (id) { return { key: id, kind: 'app', id: id }; }) };
+    var h = S.c.home, hs = { mode: 'browse', zone: null, i: Math.max(0, ensureSel()), u: -1, c: 0, lifted: false, from: -1, arr: null, items: h.map(function (id) { return { key: id, kind: 'app', id: id }; }) };
     if (isSettingsDetail(t)) hs.zone = 'preview';
     else if (t.id === 'home') { hs.zone = t.f.zone; hs.u = t.f.u; }
+    hs.c = clamp(t.id === 'home' && typeof t.f.c === 'number' ? t.f.c : S.lastConsole, 0, Math.max(0, CONSOLES.length - 1));
     return hs;
   }
 
@@ -1052,12 +1083,19 @@
     renderUtils(hs);
     if (S.c.layout === 'list') renderList(hs);
     else { photoMode = null; renderDock(hs); }
+    renderConsoles(hs);
     renderAppFocusName(hs);
   }
 
+  var DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   function clockText() {
     var d = new Date(), h = d.getHours(), m = d.getMinutes();
     return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+  }
+  function dateText() {
+    var d = new Date();
+    return DAY_NAMES[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()];
   }
   function clockHtml() {
     var text = clockText(), metrics = fontMetrics[homeFont()];
@@ -1065,7 +1103,7 @@
     return text.replace(/[0-9]/g, function (digit) { return '<span class="clock-digit">' + digit + '</span>'; });
   }
   function renderCaption(t, hs) {
-    var html = '<span class="clock">' + clockHtml() + '</span>';
+    var html = '<span class="clock">' + clockHtml() + '</span><span class="cap-date">' + dateText() + '</span>';
     if (S.c.apps !== 'icons' && hs.items[hs.i] && (S.c.layout === 'list' ? photoLabel(hs.items[hs.i].id, false).size < 88 || photoLabel(hs.items[hs.i].id, false).ellipsis : hs.zone === 'apps' && reducedDockLabel(hs.items[hs.i].id))) html += '<span class="cap-line full-name">' + esc(app(hs.items[hs.i].id).name) + '</span>';
     setHTML(caption, html);
   }
@@ -1155,7 +1193,8 @@
     var broad = S.geom === 'broad' && n > 5;
     if (n < 0) { w = 912; shelfW = 880; }
     else if (broad) { w = 1728; shelfW = 1696; }
-    return { x: Math.round((1920 - w) / 2), y: 908 - m.th - 32, h: m.th + 32, w: w, shelf: shelfW, vis: vis, broad: broad, empty: n < 0, tw: m.tw, th: m.th, pitch: m.pitch };
+    var bottom = CONSOLES.length ? DOCK_BOTTOM_CONSOLES : DOCK_BOTTOM;
+    return { x: Math.round((1920 - w) / 2), y: bottom - m.th - 32, h: m.th + 32, w: w, shelf: shelfW, vis: vis, broad: broad, empty: n < 0, tw: m.tw, th: m.th, pitch: m.pitch };
   }
   /* Five centred: the window moves one tile when focus passes an edge. Broad: keep a
      148px glimpse of the neighbour, as the current dock does. */
@@ -1205,9 +1244,10 @@
     var items = hs.items, n = items.length, empty = hs.mode !== 'arrange' && !n, g = dockGeom(empty ? -1 : n);
     var anchor = clamp(hs.i, 0, Math.max(0, n - 1)), off = empty ? 0 : dockOffset(n, anchor, g);
     var full = hs.arr ? live(hs.arr.slots).length >= CAP : false, ns = hs.arr ? hs.arr.slots.length : n;
-    var tileFocus = hs.zone === 'apps' || hs.zone === 'tiles', tileSel = hs.zone === 'util' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
+    var tileFocus = hs.zone === 'apps' || hs.zone === 'tiles', tileSel = hs.zone === 'util' || hs.zone === 'consoles' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
     var focusItem = items[anchor], s, ax, label, width;
 
+    lastDockGeom = g;
     dock.className = 'dock' + (empty ? ' is-empty' : '');
     dock.style.left = g.x + 'px'; dock.style.top = g.y + 'px'; dock.style.width = g.w + 'px'; dock.style.height = g.h + 'px';
     dock.style.setProperty('--tile-w', g.tw + 'px'); dock.style.setProperty('--tile-h', g.th + 'px'); dock.style.setProperty('--dock-h', g.h + 'px');
@@ -1262,6 +1302,93 @@
       dockAction.removeAttribute('data-z'); dockAction.removeAttribute('data-action');
     }
     setHTML(dockEmpty, empty ? '<p>No apps on Home</p><button type="button" tabindex="-1" class="btn' + (hs.zone === 'empty' ? ' is-focus' : '') + '" data-z="empty" data-i="0" data-action="home.add-apps">' + icon('plus') + '<span>Add apps</span></button>' : '');
+  }
+
+  /* ---------- Consoles: fixed HDMI inputs in their own frosted row ---------- */
+  /* Right-aligned with the app dock's right edge, just below it. */
+  /* Left-aligned with the app dock, directly below it. */
+  function consoleGeom(appsBottom, appsLeft) {
+    var n = CONSOLES.length, pitch = CONSOLE_W + CONSOLE_GAP;
+    var w = n * pitch - CONSOLE_GAP + CONSOLE_PAD * 2, h = CONSOLE_H + CONSOLE_PAD * 2;
+    return { x: Math.round(appsLeft), y: appsBottom + CONSOLE_DROP, w: w, h: h, pitch: pitch, tw: CONSOLE_W, th: CONSOLE_H };
+  }
+  function consoleListGeom() {
+    /* List consoles share the right column with the controls: two stacked cards, the
+       same right edge as All apps and Settings, and a clear gap above them. */
+    var n = CONSOLES.length, pitch = CONSOLE_H_LIST + CONSOLE_GAP_LIST;
+    var h = n * pitch - CONSOLE_GAP_LIST;
+    return { x: Math.round(1920 - 122.1 - CONSOLE_W_LIST), y: 820 - h, w: CONSOLE_W_LIST, h: h, pitch: pitch, tw: CONSOLE_W_LIST, th: CONSOLE_H_LIST, vertical: true };
+  }
+  /* Green dot for a console whose HDMI port the TV reports as connected; refreshed on wake and every 30s. */
+  var hdmiOn = {}, hdmiTimer = 0;
+  function refreshHdmi() {
+    clearTimeout(hdmiTimer);
+    if (!CONSOLES.length || !window.FrameDevice || !FrameDevice.hdmiStatus) return;
+    FrameDevice.hdmiStatus(function (status) {
+      var changed = false, k;
+      status = status || {};
+      for (k in status) if (status.hasOwnProperty(k) && !!hdmiOn[k] !== status[k]) changed = true;
+      for (k in hdmiOn) if (hdmiOn.hasOwnProperty(k) && !status[k]) changed = true;
+      hdmiOn = status;
+      if (changed) render();
+      if (!document.hidden) hdmiTimer = setTimeout(refreshHdmi, 30000);
+    });
+  }
+  function consoleCardsHtml() {
+    return CONSOLES.map(function (c, i) {
+      return '<button type="button" tabindex="-1" class="console-card" data-z="consoles" data-i="' + i + '" data-action="console.' + c.key + '" aria-label="' + esc(c.name + ', HDMI ' + c.hdmi) + '">'
+        + '<span class="c-mark">' + appMark({ id: c.key, name: c.name, logo: c.logo }, 72, 56, 44) + '</span>'
+        + '<span class="c-text"><span class="c-name">' + esc(c.name) + '</span><span class="c-port"><span class="c-dot"></span>HDMI ' + c.hdmi + '</span></span></button>';
+    }).join('');
+  }
+  function renderConsoles(hs) {
+    var list = S.c.layout === 'list', show = CONSOLES.length > 0 && hs.mode !== 'arrange', g, i, focus, card, pad, cx, cy;
+    if (!show) { consolesEl.className = 'consoles'; consolesLabel.className = 'section-label'; return; }
+    g = list ? consoleListGeom() : consoleGeom(lastDockGeom ? lastDockGeom.y + lastDockGeom.h : DOCK_BOTTOM_CONSOLES, lastDockGeom ? lastDockGeom.x : 208);
+    pad = list ? 0 : CONSOLE_PAD;
+    consolesEl.className = 'consoles ' + (list ? 'is-list' : 'is-panel');
+    consolesEl.style.left = g.x + 'px'; consolesEl.style.top = g.y + 'px';
+    consolesEl.style.width = g.w + 'px'; consolesEl.style.height = g.h + 'px';
+
+    /* The compact dock row and the list column both read without a section label. */
+    consolesLabel.className = 'section-label';
+    consolesLabel.style.left = (g.x + 26) + 'px';
+    consolesLabel.style.top = (g.y + 16) + 'px';
+
+    if (!list) {
+      /* The same pre-rendered blur slice behind a second panel; no live blur on the TV. */
+      if (consolesMatImg.src !== IMG.mat.src) consolesMatImg.src = IMG.mat.src;
+      consolesMatImg.style.left = (-g.x) + 'px'; consolesMatImg.style.top = (-g.y) + 'px';
+      consolesMatImg.style.transformOrigin = '960px ' + (g.y + g.h / 2) + 'px';
+      consolesScrim.style.left = (-g.x) + 'px'; consolesScrim.style.top = (SCRIM_Y - g.y) + 'px';
+      consolesScrim.style.transformOrigin = '960px ' + (g.y + g.h / 2 - SCRIM_Y) + 'px';
+    }
+
+    if (!consoleCards._built) { consoleCards.innerHTML = consoleCardsHtml(); consoleCards._built = true; }
+    focus = hs.zone === 'consoles';
+    for (i = 0; i < CONSOLES.length; i++) {
+      card = consoleCards.children[i];
+      card.style.transform = list ? 'translate3d(0,' + (i * g.pitch) + 'px,0)' : 'translate3d(' + (pad + i * g.pitch) + 'px,' + pad + 'px,0)';
+      card.className = 'console-card' + (hdmiOn[CONSOLES[i].hdmi] ? ' is-live' : '') + (focus && i === hs.c ? ' is-focus' : '') + (S.press === 'console:' + CONSOLES[i].key ? ' is-press' : '');
+    }
+
+    if (focus) {
+      /* The focus plate lives inside the panel, so it moves in panel coordinates. */
+      cx = list ? 0 : pad + hs.c * g.pitch;
+      cy = list ? hs.c * g.pitch : pad;
+      consoleFocus.className = 'console-focus is-on';
+      consoleFocus.style.width = g.tw + 'px'; consoleFocus.style.height = g.th + 'px';
+      consoleFocus.style.transform = 'translate3d(' + cx + 'px,' + cy + 'px,0)';
+      if (list && S.c.bg === 'photo' && S.shown) {
+        consoleFocus.style.backgroundImage = 'url("' + matSrc(S.shown.wall, S.shown.material) + '")';
+        consoleFocus.style.backgroundPosition = (-(g.x + cx)) + 'px ' + (-(g.y + cy)) + 'px';
+      } else {
+        consoleFocus.style.backgroundImage = ''; consoleFocus.style.backgroundPosition = '';
+      }
+    } else {
+      consoleFocus.className = 'console-focus';
+      consoleFocus.style.backgroundImage = ''; consoleFocus.style.backgroundPosition = '';
+    }
   }
 
   function photoModeTransition(compact) {
@@ -1836,13 +1963,14 @@
   });
   document.addEventListener('keyup', function (ev) { delete heldKeys[ev.keyCode]; });
   window.addEventListener('blur', function () { heldKeys = {}; });
-  window.addEventListener('focus', function () { release(); focusStage(); after(); updateClock(); });
+  window.addEventListener('focus', function () { release(); focusStage(); after(); updateClock(); refreshHdmi(); });
   document.addEventListener('visibilitychange', function () {
     heldKeys = {};
     if (document.hidden) { pauseRotation(); clearTimeout(clockTimer); }
-    else { release(); after(); updateClock(); focusStage(); }
+    else { release(); after(); updateClock(); focusStage(); refreshHdmi(); }
   });
   window.addEventListener('resize', fit);
+  refreshHdmi();
 
   /* Readable browser checks use the real state and actions, without fake outcomes. */
   var NAV = { left: 'left', right: 'right', up: 'up', down: 'down', ok: 'ok', enter: 'ok', back: 'back', escape: 'back' };

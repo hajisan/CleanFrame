@@ -26,7 +26,8 @@
     function finish(err, value) { if (finished) return; finished = true; clearTimeout(timer); done(err, value); }
     return finish;
   }
-  var HDMI_PS5 = '1';
+  /* Each console owns a fixed HDMI port; the tiles are not editable Home apps. */
+  var CONSOLE_INPUTS = { ps5: '1', xbox: '2' };
   /* HbbTV apps such as DR TV are not startable by their own ID. Samsung publishes
      their entry page as app metadata and starts the shared HbbTV host instead. */
   var HBBTV_HOST = 'org.tizen.hbbtv';
@@ -55,7 +56,6 @@
   }
   function launchApp(id, done) {
     if (!api()) { unavailable(done); return; }
-    if (id === IDS.source) { hdmi(HDMI_PS5, done); return; }
     var link = hbbtvLink(id);
     if (link) { launchHbbtv(id, link, done); return; }
     var finish = bounded(done);
@@ -74,6 +74,11 @@
       var control = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/default', null, null, null, data);
       api().launchAppControl(control, IDS.source, function () { finish(null); }, function (err) { finish(failure(err)); });
     } catch (err) { finish(failure(err)); }
+  }
+  function consoleInput(key, done) {
+    if (!api()) { unavailable(done); return; }
+    if (!CONSOLE_INPUTS.hasOwnProperty(key)) { done({ message: 'This console has no input.' }); return; }
+    hdmi(CONSOLE_INPUTS[key], done);
   }
   function home(done) { launchApp('com.samsung.tv.csfs', done); }
   function settings(done) { launchApp('org.tizen.menu', done); }
@@ -98,5 +103,18 @@
       }, function (err) { finish(failure(err)); });
     } catch (err) { finish(failure(err)); }
   }
-  window.FrameDevice = { launch: launch, launchApp: launchApp, home: home, settings: settings, apps: apps };
+  /* The TV lists HDMI ports with a powered device as connected; returns { '1': true, ... }. */
+  function hdmiStatus(done) {
+    var info = window.tizen && window.tizen.systeminfo;
+    if (!info) { done(null); return; }
+    try {
+      info.getPropertyValue('VIDEOSOURCE', function (v) {
+        var status = {};
+        (v.disconnected || []).forEach(function (s) { if (s.type === 'HDMI') status[s.number] = false; });
+        (v.connected || []).forEach(function (s) { if (s.type === 'HDMI') status[s.number] = true; });
+        done(status);
+      }, function () { done(null); });
+    } catch (err) { done(null); }
+  }
+  window.FrameDevice = { launch: launch, launchApp: launchApp, consoleInput: consoleInput, hdmiStatus: hdmiStatus, home: home, settings: settings, apps: apps };
 }());

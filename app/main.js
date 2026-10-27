@@ -5,7 +5,7 @@
   /* ---------- Bundled data ---------- */
   var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', LOGOS = ASSETS + 'logos/', WP = ASSETS + 'wallpapers/';
   var CAP = 9, SCRIM_Y = 560;
-  var DOCK_MODES = { both: { tw: 256, th: 200, pitch: 264 }, text: { tw: 256, th: 104, pitch: 264 }, icons: { tw: 176, th: 144, pitch: 184 } };
+  var DOCK_MODES = { both: { tw: 256, th: 200, pitch: 264 }, text: { tw: 256, th: 104, pitch: 264 }, icons: { tw: 256, th: 104, pitch: 264 } };
   var DOCK_VIS = 6;
   var CONSOLE_W = 330, CONSOLE_H = 88, CONSOLE_GAP = 8, CONSOLE_PAD = 12, CONSOLE_DROP = 16, DOCK_BOTTOM = 908, DOCK_BOTTOM_CONSOLES = 872;
   var CONSOLE_W_LIST = 520, CONSOLE_H_LIST = 104, CONSOLE_GAP_LIST = 12;
@@ -1175,7 +1175,8 @@
   }
   function renderAppFocusName(hs) {
     var it = hs.items[hs.i], width, x, y, placement;
-    if (S.c.apps !== 'icons' || hs.mode !== 'browse' || hs.zone !== 'apps' || !it) { appFocusName.className = 'app-focus-name'; return; }
+    /* The dock's icon row matches the text row and carries no name below; the list keeps it. */
+    if (S.c.apps !== 'icons' || S.c.layout !== 'list' || hs.mode !== 'browse' || hs.zone !== 'apps' || !it) { appFocusName.className = 'app-focus-name'; return; }
     appFocusName.textContent = app(it.id).name;
     width = Math.min(S.c.layout === 'list' ? 1056 : 1640, Math.ceil(textWidth(app(it.id).name, S.c.layout === 'list' ? 40 : 36, 500, -.6, 'primary') + 8));
     appFocusName.style.width = width + 'px';
@@ -1219,7 +1220,7 @@
     var a, body;
     if (it.kind === 'add') return '<span class="add">' + icon('plus') + '</span><span class="label">' + (full ? 'Home is full' : 'Add app') + '</span>';
     a = app(it.id);
-    body = S.c.apps === 'text' ? '' : appMark(a, S.c.apps === 'icons' ? 136 : 120, S.c.apps === 'icons' ? 88 : 72, S.c.apps === 'icons' ? 72 : 58);
+    body = S.c.apps === 'text' ? '' : appMark(a, 120, 72, 58);
     return body + (S.c.apps === 'icons' ? '' : '<span class="label" style="font-size:' + dockLabelSize(a.id) + 'px;top:' + ((S.c.apps === 'text' ? 28 : 128) + fontShift('primary', dockLabelSize(a.id))) + 'px"><span class="label-ink">' + esc(a.name) + '</span></span>') + '<span class="nudge nudge-l">' + icon('left') + '</span><span class="nudge nudge-r">' + icon('right') + '</span>';
   }
   /* A wide label can reach the shelf before its icon. Check the rendered icon box,

@@ -5,7 +5,8 @@
   /* ---------- Bundled data ---------- */
   var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', LOGOS = ASSETS + 'logos/', WP = ASSETS + 'wallpapers/';
   var CAP = 9, SCRIM_Y = 560;
-  var DOCK_MODES = { both: { tw: 288, th: 200, pitch: 296 }, text: { tw: 288, th: 104, pitch: 296 }, icons: { tw: 176, th: 144, pitch: 184 } };
+  var DOCK_MODES = { both: { tw: 256, th: 200, pitch: 264 }, text: { tw: 256, th: 104, pitch: 264 }, icons: { tw: 176, th: 144, pitch: 184 } };
+  var DOCK_VIS = 6;
   var CONSOLE_W = 330, CONSOLE_H = 88, CONSOLE_GAP = 8, CONSOLE_PAD = 12, CONSOLE_DROP = 16, DOCK_BOTTOM = 908, DOCK_BOTTOM_CONSOLES = 872;
   var CONSOLE_W_LIST = 520, CONSOLE_H_LIST = 104, CONSOLE_GAP_LIST = 12;
   var GRID_ROW = 240, GRID_COL = 344, COLS = 5;
@@ -276,7 +277,7 @@
     if (fontMetrics[id]) widthCache[key] = width;
     return width;
   }
-  function dockLabelSize(id) { return S.c.apps === 'text' ? (textWidth(app(id).name, 40, 600, -.8, 'primary') > 264 ? 34 : 40) : textWidth(app(id).name, 36, 500, -.8, 'primary') > 280 ? 32 : 36; }
+  function dockLabelSize(id) { return S.c.apps === 'text' ? (textWidth(app(id).name, 40, 600, -.8, 'primary') > 232 ? 34 : 40) : textWidth(app(id).name, 36, 500, -.8, 'primary') > 248 ? 32 : 36; }
   function reducedDockLabel(id) { return S.c.apps !== 'icons' && dockLabelSize(id) === (S.c.apps === 'text' ? 34 : 32); }
   function actionWidth(text) { return clamp(Math.ceil(textWidth(text, 30, 500, -.3) + 40), 288, 400); }
   function photoLabel(id, compact) {
@@ -1189,14 +1190,14 @@
   }
 
   function dockGeom(n) {
-    var m = DOCK_MODES[S.c.apps], vis = Math.max(1, Math.min(5, n)), shelfW = vis * m.pitch - 8, w = shelfW + 32;
-    var broad = S.geom === 'broad' && n > 5;
+    var m = DOCK_MODES[S.c.apps], vis = Math.max(1, Math.min(DOCK_VIS, n)), shelfW = vis * m.pitch - 8, w = shelfW + 32;
+    var broad = S.geom === 'broad' && n > DOCK_VIS;
     if (n < 0) { w = 912; shelfW = 880; }
     else if (broad) { w = 1728; shelfW = 1696; }
     var bottom = CONSOLES.length ? DOCK_BOTTOM_CONSOLES : DOCK_BOTTOM;
     return { x: Math.round((1920 - w) / 2), y: bottom - m.th - 32, h: m.th + 32, w: w, shelf: shelfW, vis: vis, broad: broad, empty: n < 0, tw: m.tw, th: m.th, pitch: m.pitch };
   }
-  /* Five centred: the window moves one tile when focus passes an edge. Broad: keep a
+  /* Six centred: the window moves one tile when focus passes an edge. Broad: keep a
      148px glimpse of the neighbour, as the current dock does. */
   function dockOffset(n, i, g) {
     var off, left, first, glimpse = g.tw / 2;

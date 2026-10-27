@@ -777,7 +777,8 @@
     return { recent: rec, rest: ALPHA.filter(function (id) { return !onHome(id) && rec.indexOf(id) < 0; }) };
   }
   function otherList() { var o = otherGroups(); return o.recent.concat(o.rest); }
-  function editorCut() { return 5; }
+  /* Matches the dock: the first DOCK_VIS apps show without scrolling (icons mode is the same). */
+  function editorCut() { return DOCK_VIS; }
   function editorHomeY(i) { return i * ED_ROW + (i >= editorCut() ? 24 : 0); }
   function editorOtherY(j) {
     var o = otherGroups();

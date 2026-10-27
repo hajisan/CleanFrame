@@ -27,7 +27,6 @@
     return finish;
   }
   /* Each console owns a fixed HDMI port; the tiles are not editable Home apps. */
-  var CONSOLE_INPUTS = { ps5: '1', xbox: '2' };
   /* HbbTV apps such as DR TV are not startable by their own ID. Samsung publishes
      their entry page as app metadata and starts the shared HbbTV host instead. */
   var HBBTV_HOST = 'org.tizen.hbbtv';
@@ -75,10 +74,27 @@
       api().launchAppControl(control, IDS.source, function () { finish(null); }, function (err) { finish(failure(err)); });
     } catch (err) { finish(failure(err)); }
   }
-  function consoleInput(key, done) {
+  function hdmiInput(port, done) {
     if (!api()) { unavailable(done); return; }
-    if (!CONSOLE_INPUTS.hasOwnProperty(key)) { done({ message: 'This console has no input.' }); return; }
-    hdmi(CONSOLE_INPUTS[key], done);
+    hdmi(port, done);
+  }
+  /* Show an HDMI port on the main video plane behind the page (needs tv.window). */
+  function showHdmi(port, done) {
+    var tv = window.tizen && window.tizen.tvwindow, info = window.tizen && window.tizen.systeminfo;
+    if (!tv || !info) { unavailable(done); return; }
+    var finish = bounded(done);
+    try {
+      info.getPropertyValue('VIDEOSOURCE', function (v) {
+        var src = (v.connected || []).concat(v.disconnected || []).filter(function (s) { return s.type === 'HDMI' && String(s.number) === String(port); })[0];
+        if (!src) { finish({ message: 'HDMI ' + port + ' is not available.' }); return; }
+        tv.setSource(src, function () {
+          tv.show(function () { finish(null); }, function (err) { finish(failure(err)); }, ['0px', '0px', '1920px', '1080px'], 'MAIN');
+        }, function (err) { finish(failure(err)); }, 'MAIN');
+      }, function (err) { finish(failure(err)); });
+    } catch (err) { finish(failure(err)); }
+  }
+  function hideHdmi() {
+    try { window.tizen.tvwindow.hide(function () {}, function () {}, 'MAIN'); } catch (err) {}
   }
   function home(done) { launchApp('com.samsung.tv.csfs', done); }
   function settings(done) { launchApp('org.tizen.menu', done); }
@@ -116,5 +132,5 @@
       }, function () { done(null); });
     } catch (err) { done(null); }
   }
-  window.FrameDevice = { launch: launch, launchApp: launchApp, consoleInput: consoleInput, hdmiStatus: hdmiStatus, home: home, settings: settings, apps: apps };
+  window.FrameDevice = { launch: launch, launchApp: launchApp, hdmiInput: hdmiInput, showHdmi: showHdmi, hideHdmi: hideHdmi, hdmiStatus: hdmiStatus, home: home, settings: settings, apps: apps };
 }());

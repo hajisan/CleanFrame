@@ -26,10 +26,17 @@
     { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' }
   ];
   /* Fixed inputs, not part of the editable Home list. Each tile switches tv-viewer to its HDMI port. */
-  var CONSOLES = [
-    { key: 'ps5', name: 'PlayStation 5', logo: 'source_ps5_color.png', hdmi: '1' },
-    { key: 'xbox', name: 'Xbox Series S', logo: 'source_xbox.png', hdmi: '2' }
-  ];
+  /* Consoles are chosen per HDMI port in Settings; CONSOLES is rebuilt from S.c by syncConsoles(). */
+  var CONSOLE_TYPES = {
+    ps5: { name: 'PlayStation 5', logo: 'source_ps5_color.png' },
+    xbox: { name: 'Xbox Series S', logo: 'source_xbox.png' },
+    'switch': { name: 'Switch' },
+    pc: { name: 'PC' }
+  };
+  var CONSOLE_CHOICES = ['none', 'ps5', 'xbox', 'switch', 'pc'], HDMI_PORTS = ['1', '2', '3', '4'];
+  var HDMI_DEFAULTS = { '1': 'ps5', '2': 'xbox', '3': 'none', '4': 'none' };
+  var CONSOLE_AXES = HDMI_PORTS.map(function (p) { return 'hdmi' + p; }).concat(['consoleView']);
+  var CONSOLES = [];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
   var ADAPTIVE_INK = window.CleanFrameAdaptiveInk || {};
@@ -53,7 +60,7 @@
   var LOOK_KEYS = ['bg', 'layout', 'apps', 'font', 'controls', 'focus', 'material'];
   var LOOK_VALUES = { bg: ['dark', 'light', 'photo'], layout: ['list', 'dock'], apps: ['icons', 'both', 'text'], font: Object.keys(FONTS).filter(function (id) { return id === 'manrope' || PRIVATE_FONTS.indexOf(id) >= 0; }), controls: ['icons', 'both', 'text'], focus: ['type', 'glass'], material: ['soft', 'frost', 'tint'] };
   var LOOK_NAMES = { bg: 'Background', layout: 'Layout', apps: 'Apps', font: 'Font', controls: 'Home controls', focus: 'Focus', material: 'Material' };
-  var VALUE_NAMES = { dark: 'Dark', light: 'Light', photo: 'Photo', list: 'List', dock: 'Dock', type: 'Type', glass: 'Glass', soft: 'Soft', frost: 'Frost', tint: 'Clear tint', icons: 'Icons', both: 'Icons and text', text: 'Text' };
+  var VALUE_NAMES = { none: 'None', ps5: 'PS5', xbox: 'Xbox', 'switch': 'Switch', pc: 'PC', input: 'Switch input', inside: 'Inside CleanFrame', dark: 'Dark', light: 'Light', photo: 'Photo', list: 'List', dock: 'Dock', type: 'Type', glass: 'Glass', soft: 'Soft', frost: 'Frost', tint: 'Clear tint', icons: 'Icons', both: 'Icons and text', text: 'Text' };
   var UTIL = { apps: ['All apps', 'apps'], arrange: ['Arrange', 'arrange'], settings: ['Settings', 'settings'] };
   var MSG = {
     leave: { title: 'Leave Home?', line: 'Open Samsung Home?', note: '', actions: [['stay', 'Stay'], ['samsung', 'Samsung Home']] }
@@ -354,7 +361,10 @@
       focus: pick(modern.focus, LOOK_VALUES.focus, legacyList ? 'type' : 'glass'), material: pick(modern.material, LOOK_VALUES.material, 'soft'),
       font: pick(modern.font, LOOK_VALUES.font, 'manrope'), wall: wall(modern.wall || s.wallpaper) ? modern.wall || s.wallpaper : WALLS[0].id,
       home: h, recent: recent, lastApp: h.indexOf(s.lastApp) >= 0 ? s.lastApp : h[0],
-      mode: pick(s.mode, MODES.map(function (m) { return m.id; }), 'fixed')
+      mode: pick(s.mode, MODES.map(function (m) { return m.id; }), 'fixed'),
+      hdmi1: pick(s.hdmi1, CONSOLE_CHOICES, HDMI_DEFAULTS['1']), hdmi2: pick(s.hdmi2, CONSOLE_CHOICES, HDMI_DEFAULTS['2']),
+      hdmi3: pick(s.hdmi3, CONSOLE_CHOICES, HDMI_DEFAULTS['3']), hdmi4: pick(s.hdmi4, CONSOLE_CHOICES, HDMI_DEFAULTS['4']),
+      consoleView: pick(s.consoleView, ['input', 'inside'], 'input')
     };
   }
   function serialise(c) {
@@ -379,7 +389,23 @@
   }
   function clearSession() { S.undo = []; S.removedAt = {}; S.note = null; S.err = null; }
   function begin() { S.note = null; }
-  function next(home, recent) { var c = lookOf(S.c); c.home = home; c.recent = recent; c.lastApp = S.c.lastApp; c.mode = S.c.mode; return c; }
+  function next(home, recent) {
+    var c = lookOf(S.c); c.home = home; c.recent = recent; c.lastApp = S.c.lastApp; c.mode = S.c.mode;
+    CONSOLE_AXES.forEach(function (axis) { c[axis] = S.c[axis]; });
+    return c;
+  }
+  function syncConsoles() {
+    CONSOLES = [];
+    HDMI_PORTS.forEach(function (port) {
+      var type = S.c['hdmi' + port], info = CONSOLE_TYPES[type];
+      if (info) CONSOLES.push({ key: 'hdmi' + port, type: type, name: info.name, logo: info.logo, hdmi: port });
+    });
+  }
+  function setConsoleChoice(axis, value) {
+    var c = next(S.c.home.slice(), S.c.recent.slice());
+    c[axis] = value; S.err = null;
+    if (write(c, 'Consoles')) { syncConsoles(); S.lastConsole = clamp(S.lastConsole, 0, Math.max(0, CONSOLES.length - 1)); }
+  }
   function snap() { return { home: S.c.home.slice(), recent: S.c.recent.slice() }; }
   function pushRecent(list, id) { return [id].concat(without(list, id)).slice(0, 5); }
   function write(c, label) {
@@ -474,7 +500,15 @@
   function launchConsole(c) {
     if (!c || busy) return;
     S.press = 'console:' + c.key; S.lastLaunch = c.name;
-    perform(c.name, function (done) { FrameDevice.consoleInput(c.key, done); });
+    if (S.c.consoleView === 'inside') { perform(c.name, function (done) { FrameDevice.showHdmi(c.hdmi, function (err) { if (!err) enterTvMode(c); done(err); }); }); return; }
+    perform(c.name, function (done) { FrameDevice.hdmiInput(c.hdmi, done); });
+  }
+  /* HDMI shown inside CleanFrame: the page turns transparent over the video plane until Back. */
+  function enterTvMode(c) { S.tvMode = c; document.documentElement.className = 'tv-on'; }
+  function exitTvMode() {
+    if (!S.tvMode) return;
+    S.tvMode = null; document.documentElement.className = '';
+    FrameDevice.hideHdmi(); render();
   }
   function refreshCatalog() {
     var request, oldFocus;
@@ -517,7 +551,7 @@
   function addAppsRoute() { openEditor('home'); }
   function openSettings() { push({ id: 'settings', f: { id: S.settingsFocus } }); }
   function openAppearance(group) {
-    var axis = { background: 'bg', layout: 'layout', typography: 'font', focus: 'focus' }[group];
+    var axis = { background: 'bg', layout: 'layout', typography: 'font', focus: 'focus', consoles: 'consoleView' }[group];
     var action = S.detailFocus[group] || (axis ? 'choice.' + axis + '.' + S.c[axis] : group === 'rotation' ? 'rotation.' + S.c.mode : 'samsung.home');
     push({ id: 'appearance', group: group, f: { action: action } });
   }
@@ -850,6 +884,7 @@
       { id: 'typography', label: 'Typography', value: FONTS[S.c.font].name },
       { id: 'focus', label: 'Focus', value: VALUE_NAMES[S.c.focus] + (materialApplies() ? ', ' + VALUE_NAMES[S.c.material] : '') },
       { id: 'editor', label: 'Apps on Home', value: n + (n === 1 ? ' app' : ' apps') },
+      { id: 'consoles', label: 'Consoles', value: CONSOLES.length ? CONSOLES.map(function (c) { return VALUE_NAMES[c.type]; }).join(', ') : 'None' },
       { id: 'samsung', label: 'Samsung', value: 'Home and TV settings' }];
   }
   function settingsIds() { return settingsRows().map(function (r) { return r.id; }); }
@@ -870,7 +905,7 @@
     if (id === 'editor') openEditor('settings');
     else openAppearance(id);
   }
-  var DETAIL_NAMES = { background: 'Background', layout: 'Layout', typography: 'Typography', focus: 'Focus', rotation: 'Rotation', samsung: 'Samsung' };
+  var DETAIL_NAMES = { consoles: 'Consoles', background: 'Background', layout: 'Layout', typography: 'Typography', focus: 'Focus', rotation: 'Rotation', samsung: 'Samsung' };
   function choice(axis, value, disabled) {
     return { action: axis === 'mode' ? 'rotation.' + value : 'choice.' + axis + '.' + value, axis: axis, value: value, disabled: !!disabled,
       label: axis === 'font' ? FONTS[value].name : axis === 'mode' ? MODES.filter(function (m) { return m.id === value; })[0].name : value === 'both' ? 'Both' : VALUE_NAMES[value] };
@@ -889,6 +924,10 @@
       { id: 'controls', title: 'Home controls', horizontal: true, items: options('controls', ['text', 'icons', 'both']) }
     ];
     if (t.group === 'typography') return [{ id: 'font', title: '', items: options('font', LOOK_VALUES.font) }];
+    if (t.group === 'consoles') return [{ id: 'consoleView', title: 'Open consoles', horizontal: true, items: options('consoleView', ['input', 'inside']) }]
+      .concat(HDMI_PORTS.map(function (port) {
+        return { id: 'hdmi' + port, title: 'HDMI ' + port + (hdmiOn[port] ? ' · connected' : ''), horizontal: true, items: options('hdmi' + port, CONSOLE_CHOICES) };
+      }));
     if (t.group === 'focus') return [
       { id: 'focus', title: 'Focus style', horizontal: true, items: options('focus', ['type', 'glass']) },
       { id: 'material', title: 'Material', horizontal: true, items: options('material', ['soft', 'frost', 'tint'], inactive),
@@ -940,6 +979,7 @@
       if (error && error.row === 'mode') applyRotation(error.patch.mode);
       else if (error) setLook(error.patch, { row: error.row });
     } else if (item.axis === 'mode') applyRotation(item.value);
+    else if (CONSOLE_AXES.indexOf(item.axis) >= 0) setConsoleChoice(item.axis, item.value);
     else if (item.axis) { patch[item.axis] = item.value; setLook(patch, { row: item.axis }); }
     else if (item.action === 'background.wallpaper') openWallpaper();
     else if (item.action === 'background.rotation') openAppearance('rotation');
@@ -949,7 +989,7 @@
   V.appearance = {
     norm: function (t) {
       var rows = detailRows(t), exists = false, applied = null;
-      var axis = { background: 'bg', layout: 'layout', typography: 'font', focus: 'focus', rotation: 'mode' }[t.group];
+      var axis = { background: 'bg', layout: 'layout', typography: 'font', focus: 'focus', rotation: 'mode', consoles: 'consoleView' }[t.group];
       rows.forEach(function (items) { items.forEach(function (item) {
         if (item.action === t.f.action) exists = true;
         if (item.axis === axis && item.value === S.c[axis]) applied = item;
@@ -994,6 +1034,7 @@
   /* ---------- Dispatch ---------- */
   function norm() { var t = top(), v = V[t.id]; if (v.norm) v.norm(t); }
   function press(k) {
+    if (S.tvMode) { if (k === 'back' || k === 'ok') exitTvMode(); return; }
     norm();
     var t = top();
     V[t.id].key(t, k);
@@ -1047,6 +1088,7 @@
     }).join('');
   }
   function render() {
+    syncConsoles();
     var t = top(), sheet = !!V[t.id].sheet, shown = wall(S.shown ? S.shown.wall : S.c.wall), palette = ADAPTIVE_INK[shown.id];
     var adaptive = applyAdaptiveInk(palette), tr = adaptive && palette.tr ? palette.tr.pol : shown.ut.tr, br = adaptive && palette.br ? palette.br.pol : shown.ut.br;
     stage.className = 'stage bg-' + S.c.bg + ' l-' + S.c.layout + ' v-' + S.variant + ' m-' + (materialApplies() ? S.c.material : 'none') + ' f-' + S.c.focus + ' a-' + S.c.apps + ' u-' + S.c.controls + ' g-' + S.geom + ' tone-' + shown.tone + ' tr-' + tr + ' br-' + br + wallClasses(shown) + inkRungClasses(palette, adaptive) + ' at-' + t.id + ' font-' + homeFont() + (homeFont() !== 'manrope' ? ' font-custom' : '') + (S.fontSwitch ? ' is-font-switch' : '') + (adaptive ? ' has-adaptive-ink adaptive-tl-' + palette.tl.pol : '') + (!adaptive && shown.clockInk ? ' has-clock-ink' : '') + (!adaptive && shown.dockClockInk ? ' has-dock-clock-ink' : '') + (registeredMaterial(shown.id) ? ' registered-material' : '') + (sheet ? ' is-sheet' : '') + (S.reflow ? ' is-reflow' : '');
@@ -1344,7 +1386,7 @@
     }).join('');
   }
   function renderConsoles(hs) {
-    var list = S.c.layout === 'list', show = CONSOLES.length > 0 && hs.mode !== 'arrange', g, i, focus, card, pad, cx, cy;
+    var list = S.c.layout === 'list', show = CONSOLES.length > 0 && hs.mode !== 'arrange', g, i, focus, card, pad, cx, cy, sig;
     if (!show) { consolesEl.className = 'consoles'; consolesLabel.className = 'section-label'; return; }
     g = list ? consoleListGeom() : consoleGeom(lastDockGeom ? lastDockGeom.y + lastDockGeom.h : DOCK_BOTTOM_CONSOLES, lastDockGeom ? lastDockGeom.x : 208);
     pad = list ? 0 : CONSOLE_PAD;
@@ -1366,7 +1408,8 @@
       consolesScrim.style.transformOrigin = '960px ' + (g.y + g.h / 2 - SCRIM_Y) + 'px';
     }
 
-    if (!consoleCards._built) { consoleCards.innerHTML = consoleCardsHtml(); consoleCards._built = true; }
+    sig = CONSOLES.map(function (c) { return c.key + c.type; }).join('|');
+    if (consoleCards._sig !== sig) { consoleCards.innerHTML = consoleCardsHtml(); consoleCards._sig = sig; }
     focus = hs.zone === 'consoles';
     for (i = 0; i < CONSOLES.length; i++) {
       card = consoleCards.children[i];
@@ -1968,7 +2011,7 @@
   window.addEventListener('focus', function () { release(); focusStage(); after(); updateClock(); refreshHdmi(); });
   document.addEventListener('visibilitychange', function () {
     heldKeys = {};
-    if (document.hidden) { pauseRotation(); clearTimeout(clockTimer); }
+    if (document.hidden) { pauseRotation(); clearTimeout(clockTimer); exitTvMode(); }
     else { release(); after(); updateClock(); focusStage(); refreshHdmi(); }
   });
   window.addEventListener('resize', fit);

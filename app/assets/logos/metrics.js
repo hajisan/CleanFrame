@@ -1,0 +1,2 @@
+/* Visible logo ink measured at build time by scripts/build-logo-metrics.mjs. */
+window.FrameLogoMetrics = {"drtv.svg":{"n":240,"x":0,"y":84,"w":240,"h":72},"nba.png":{"n":240,"x":0,"y":52,"w":240,"h":136},"netflix.png":{"n":240,"x":54,"y":0,"w":132,"h":240},"source_ps5_color.png":{"n":240,"x":0,"y":29,"w":240,"h":182},"source_xbox.png":{"n":240,"x":0,"y":0,"w":240,"h":240},"stremio.png":{"n":240,"x":5,"y":4,"w":230,"h":230},"tv2play.svg":{"n":240,"x":0,"y":0,"w":240,"h":240},"youtube.svg":{"n":240,"x":0,"y":36,"w":240,"h":168}};

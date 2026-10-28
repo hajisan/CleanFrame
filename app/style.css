@@ -111,7 +111,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .at-arrange .tile:not(.is-focus):not(.is-lifted){background:rgba(255,255,255,.08)}
 .mark{position:relative;display:block;flex:none}
 .mark img,.mark .mk{position:absolute;max-width:none}.mark .mk{display:block;background:currentColor;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.mark.is-bad>*{visibility:hidden}
-.mark.logo img{left:0;top:0;width:100%;height:100%;object-fit:contain}
+.mark.app-tile img{position:absolute;max-width:none;box-shadow:0 2px 10px rgba(0,0,0,.28)}
+/* App Store icons focus like Apple TV: no plate, the icon grows with a white edge. */
+.dock .plate.for-tile{opacity:0!important}
+.tile .mark.app-tile{opacity:1}
+.tile.is-focus .mark.app-tile,.f-type .tile.is-focus .mark.app-tile{transform:translateY(-6px) scale(1.16)}
+.mark.app-tile img{transition:box-shadow 160ms linear}
+.tile.is-focus .mark.app-tile img{box-shadow:0 10px 24px rgba(0,0,0,.45),0 0 0 2px rgba(255,255,255,.85)}
+/* Google Play's Stremio icon has no backing; give it Stremio's own dark tile. */
+.mark.app-tile img[src$="app-stremio.png"]{box-sizing:border-box;padding:14%;background:#1b1735}
+.mark.logo img{left:0;top:0;width:100%;height:100%;object-fit:contain;max-width:none}
 .monogram{display:flex;align-items:center;justify-content:center;font-weight:600;letter-spacing:0;color:inherit}
 .monogram span{position:relative;width:1.65em;height:1.65em;display:flex;align-items:center;justify-content:center;border-radius:.4em}.monogram span::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;border:2px solid currentColor;border-radius:inherit;opacity:.38}
 .native-icon img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:contain}

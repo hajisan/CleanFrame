@@ -18,12 +18,12 @@
 
   /* IDs read from the TQ43LS03BGU app list (Tizen 6.5). Consoles have their own section. */
   var PRIMARY_APPS = [
-    { id: 'stremio', name: 'Stremio', mark: true, logo: 'stremio.png', appId: 'IkWsFHtOY9.Stremio' },
-    { id: 'tv2play', name: 'TV 2 Play', mark: true, logo: 'tv2play.svg', appId: 'FHMMapSZwd.dktv2play' },
-    { id: 'drtv', name: 'DR TV', mark: true, logo: 'drtv.svg', appId: 'y6N4hjtxfc.DRTV' },
-    { id: 'youtube', name: 'YouTube', mark: true, logo: 'youtube.svg', appId: '9Ur5IzDKqV.TizenYouTube' },
-    { id: 'netflix', name: 'Netflix', mark: true, logo: 'netflix.png', appId: 'org.tizen.netflix-app' },
-    { id: 'nba', name: 'NBA', mark: true, logo: 'nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' }
+    { id: 'stremio', name: 'Stremio', mark: true, tile: 'app-stremio.png', appId: 'IkWsFHtOY9.Stremio' },
+    { id: 'tv2play', name: 'TV 2 Play', mark: true, tile: 'app-tv2play.png', appId: 'FHMMapSZwd.dktv2play' },
+    { id: 'drtv', name: 'DR TV', mark: true, tile: 'app-drtv.png', appId: 'y6N4hjtxfc.DRTV' },
+    { id: 'youtube', name: 'YouTube', mark: true, tile: 'app-youtube.png', appId: '9Ur5IzDKqV.TizenYouTube' },
+    { id: 'netflix', name: 'Netflix', mark: true, tile: 'app-netflix.png', appId: 'org.tizen.netflix-app' },
+    { id: 'nba', name: 'NBA', mark: true, tile: 'app-nba.png', appId: 'lVYJ9MhFJc.NextGenSamsungTizen' }
   ];
   /* Fixed inputs, not part of the editable Home list. Each tile switches tv-viewer to its HDMI port. */
   /* Consoles are chosen per HDMI port in Settings; CONSOLES is rebuilt from S.c by syncConsoles(). */
@@ -152,10 +152,26 @@
     return '<span class="mark' + (markProbes[id] === 'bad' ? ' is-bad' : '') + '" data-mark="' + id + '" style="width:' + w + 'px;height:' + h + 'px">'
       + (maskSupport ? '<span class="mk" style="' + st + ';-webkit-mask-image:url(' + ICONS + id + '.svg);mask-image:url(' + ICONS + id + '.svg)"></span>' : '<img alt="" src="' + ICONS + id + '.svg" style="' + st + '">') + '</span>';
   }
+  /* Colour logos keep their shapes but share one visual weight: the measured ink covers
+     LOGO_FILL of the box, capped by the box, and sits centred on its ink, not its file. */
+  var LOGO_FILL = .42;
+  function logoStyle(file, w, h) {
+    var m = window.FrameLogoMetrics && window.FrameLogoMetrics[file], k, s;
+    if (!m) return '';
+    k = Math.min(Math.sqrt(w * h * LOGO_FILL / (m.w * m.h)), w / m.w, h / m.h); s = m.n * k;
+    return ' style="width:' + px(s) + ';height:' + px(s) + ';left:' + px(w / 2 - (m.x + m.w / 2) * k) + ';top:' + px(h / 2 - (m.y + m.h / 2) * k) + '"';
+  }
+  function tileIconOf(a) { return a && (a.tile || (PRIMARY.indexOf(a.id) >= 0 && PRIMARY_APPS[PRIMARY.indexOf(a.id)].tile)) || ''; }
   function appMark(a, w, h, size) {
+    /* App Store icons: one rounded square for every app, a little taller than the logo box. */
+    var tileIcon = tileIconOf(a), q;
+    if (tileIcon) {
+      q = Math.min(w, h + 16);
+      return '<span class="mark app-tile" style="width:' + w + 'px;height:' + h + 'px"><img alt="" src="' + LOGOS + tileIcon + '" style="width:' + q + 'px;height:' + q + 'px;left:' + ((w - q) / 2) + 'px;top:' + ((h - q) / 2) + 'px;border-radius:' + Math.round(q * .225) + 'px"></span>';
+    }
     /* Full-colour logos from assets/logos/ replace the monochrome mask. */
     var p = a.logo || (PRIMARY.indexOf(a.id) >= 0 && PRIMARY_APPS[PRIMARY.indexOf(a.id)].logo);
-    if (p) return '<span class="mark logo" style="width:' + w + 'px;height:' + h + 'px"><img alt="" src="' + LOGOS + p + '"></span>';
+    if (p) return '<span class="mark logo" style="width:' + w + 'px;height:' + h + 'px"><img alt="" src="' + LOGOS + p + '"' + logoStyle(p, w, h) + '></span>';
     if (a.mark && (maskSupport || S.c.bg !== 'light')) return markHtml(a.brand || a.id, w, h, size);
     var words = a.name.split(/\s+/), letters = words[0].charAt(0) + (words.length > 1 ? words[1].charAt(0) : '');
     return '<span class="mark monogram' + (a.icon ? ' native-icon' : '') + '" style="width:' + w + 'px;height:' + h + 'px;font-size:' + Math.round(size * .65) + 'px"><span>' + esc(letters.toUpperCase()) + '</span>'
@@ -1324,7 +1340,8 @@
       dockEdgeUntil = Date.now() + 220;
       if (!dockEdgeFrame) dockEdgeFrame = window.requestAnimationFrame(trackDockEdges);
     }
-    plate.className = 'plate' + (!n || empty || hs.zone === null ? '' : hs.lifted ? ' on-lift' : tileFocus ? ' on-focus' : tileSel ? ' on-sel' : '');
+    plate.className = 'plate' + (!n || empty || hs.zone === null ? '' : hs.lifted ? ' on-lift' : tileFocus ? ' on-focus' : tileSel ? ' on-sel' : '')
+      + (!hs.lifted && focusItem && focusItem.id && tileIconOf(app(focusItem.id)) ? ' for-tile' : '');
     plate.style.transform = 'translate3d(' + (anchor * g.pitch) + 'px,0,0)';
 
     cueL.style.left = (g.x - 72) + 'px'; cueR.style.left = (g.x + g.w + 24) + 'px';
